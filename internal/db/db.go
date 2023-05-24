@@ -1,7 +1,10 @@
 package db
 
 import (
+	"fmt"
+	"github.com/zu1k/nali/pkg/leomoeapi"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -73,7 +76,14 @@ func Find(typ dbif.QueryType, query string) string {
 	if result, found := queryCache.Load(query); found {
 		return result.(string)
 	}
-	result, err := GetDB(typ).Find(query)
+	var err error
+	var result fmt.Stringer
+	nali := os.Getenv("NALI")
+	if nali == "1" {
+		result, err = GetDB(typ).Find(query)
+	} else {
+		result, err = leomoeapi.Find(query)
+	}
 	if err != nil {
 		return ""
 	}
