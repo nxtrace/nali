@@ -1,29 +1,41 @@
 <h1 align="center">
-  <br>Nali<br>
+  <br>Nali x Nexttrace<br>
 </h1>
-
-<h4 align="center">一个查询IP地理信息和CDN提供商的离线终端工具.</h4>
-
-<p align="center">
-  <a href="https://github.com/zu1k/nali/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/zu1k/nali/go.yml?branch=master&style=flat-square" alt="Github Actions">
-  </a>
-  <a href="https://goreportcard.com/report/github.com/zu1k/nali">
-    <img src="https://goreportcard.com/badge/github.com/zu1k/nali?style=flat-square">
-  </a>
-  <a href="https://github.com/zu1k/nali/releases">
-    <img src="https://img.shields.io/github/release/zu1k/nali/all.svg?style=flat-square">
-  </a>
-  <a href="https://github.com/zu1k/nali/releases">
-    <img src="https://img.shields.io/github/downloads/zu1k/nali/total?style=flat-square">
-  </a>
-</p>
 
 #### [English](https://github.com/zu1k/nali/blob/master/README_en.md)
 
-## 功能
+## 相比原版nali的特别功能
 - 支持**NextTrace的LEOMOEAPI** (默认使用，若要使用其他API，请先设置环境变量NALI=1)
-- 支持管道处理 尤其是**配合MTR使用有奇效**
+- 支持管道处理 尤其是**配合MTR使用有奇效** 
+
+举个例子：
+
+```bash
+mtr -n4 tj.189.cn | ./nali-nt_linux_amd64
+```
+
+<img width="833" alt="image" src="https://github.com/tsosunchia/nali-nexttrace/assets/59512455/71f7e878-3b81-458d-9e54-f44c196df190">
+
+```bash
+mtr -n6 tj.10086.cn | ./nali-nt_linux_amd64
+```
+
+<img width="837" alt="image" src="https://github.com/tsosunchia/nali-nexttrace/assets/59512455/5909c266-83b1-4d04-baa5-1991dd09a808">
+
+```bash
+#在您的.bashrc 或者 .zshrc中添加如下代码可以方便您的使用
+ntr(){
+ mtr $* -n | /path/to/your/nali-nt
+}
+#然后就能用如下捷径利用mtr x nexttrace了
+ntr 1.1.1.1
+#甚至不影响您使用mtr的其他参数，比如：
+ntr 1.1.1.1 -T -c 10
+```
+
+**以上操作需要您先自行安装mtr
+
+## 功能
 - CDN 服务提供商查询
 - 支持交互式查询
 - 同时支持IPv4和IPv6
