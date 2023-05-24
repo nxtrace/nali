@@ -113,7 +113,7 @@ jobs:
           if [ ! -z $GOARM ]; then
             export GOARM=v$GOARM
           fi
-          export _NAME="nexttrace_${GOOS}_${GOARCH}${GOARM}"
+          export _NAME="nali-nt_${GOOS}_${GOARCH}${GOARM}"
           if [ "$GOOS" == "windows" ]; then
             export _NAME="$_NAME.exe"
           fi

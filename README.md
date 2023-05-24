@@ -22,7 +22,15 @@
 #### [English](https://github.com/zu1k/nali/blob/master/README_en.md)
 
 ## 功能
-- 支持NextTrace的LEOMOEAPI (默认使用，若要使用其他API，请先设置环境变量NALI=1)
+- 支持**NextTrace的LEOMOEAPI** (默认使用，若要使用其他API，请先设置环境变量NALI=1)
+- 支持管道处理 尤其是**配合MTR使用有奇效**
+- CDN 服务提供商查询
+- 支持交互式查询
+- 同时支持IPv4和IPv6
+- 支持多语言
+- 查询完全离线
+- 全平台支持
+- 支持彩色输出
 - 支持多种数据库
   - 纯真 IPv4 离线数据库
   - ZX IPv6 离线数据库
@@ -31,14 +39,6 @@
   - ip2region 数据库 (可选)
   - DB-IP 数据库 (可选)
   - IP2Location DB3 LITE 数据库 (可选)
-- CDN 服务提供商查询
-- 支持管道处理
-- 支持交互式查询
-- 同时支持IPv4和IPv6
-- 支持多语言
-- 查询完全离线
-- 全平台支持
-- 支持彩色输出
 
 ## 安装
 
