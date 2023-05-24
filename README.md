@@ -22,7 +22,7 @@
 #### [English](https://github.com/zu1k/nali/blob/master/README_en.md)
 
 ## 功能
-
+- 支持NextTrace的LEOMOEAPI (默认使用，若要使用其他API，请先设置环境变量NALI=1)
 - 支持多种数据库
   - 纯真 IPv4 离线数据库
   - ZX IPv6 离线数据库
