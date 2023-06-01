@@ -1,10 +1,17 @@
 package leomoeapi
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/zu1k/nali/pow"
+	"log"
 	"net"
+	"net/http"
+	"net/url"
+	"os"
 	"strings"
 )
 
@@ -29,28 +36,90 @@ type IPGeoData struct {
 	Source    string              `json:"source"`
 }
 
-func FetchIPInfo(ip string) (*IPGeoData, error) {
-	c, _, err := websocket.DefaultDialer.Dial("wss://api.leo.moe/v2/ipGeoWs", nil)
-	if err != nil {
-		return nil, fmt.Errorf("websocket dial: %w", err)
+var conn *websocket.Conn
+
+func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
+	var host, port, fastIp string
+	host, port = util.GetHostAndPort()
+	// 如果 host 是一个 IP 使用默认域名
+	if valid := net.ParseIP(host); valid != nil {
+		host = "api.leo.moe"
+	} else {
+		// 默认配置完成，开始寻找最优 IP
+		fastIp = util.GetFastIP(host, port, false)
 	}
-	defer c.Close()
+	//host, port, fastIp = "103.120.18.35", "api.leo.moe", "443"
+	envToken := util.EnvToken
+	jwtToken := "Bearer " + token
+	ua := []string{"Privileged Client"}
+	if token == "" {
+		jwtToken = envToken
+		err := error(nil)
+		if envToken == "" {
+			jwtToken, err = pow.GetToken(fastIp, host, port)
+			if err != nil {
+				log.Println(err)
+				os.Exit(1)
+			}
+			ua = []string{pow.UserAgent}
+		}
+		jwtToken = "Bearer " + jwtToken
+	}
+
+	requestHeader := http.Header{
+		"Host":          []string{host},
+		"User-Agent":    ua,
+		"Authorization": []string{jwtToken},
+	}
+	jwtToken = strings.TrimPrefix(jwtToken, "Bearer ")
+	dialer := websocket.DefaultDialer
+	dialer.TLSClientConfig = &tls.Config{
+		ServerName: host,
+	}
+	u := url.URL{Scheme: "wss", Host: fastIp + ":" + port, Path: "/v3/ipGeoWs"}
+
+	var c *websocket.Conn
+	var err error
+
+	if conn == nil {
+		c, _, err = websocket.DefaultDialer.Dial(u.String(), requestHeader)
+		if err != nil {
+			return nil, "", fmt.Errorf("websocket dial: %w", err)
+		}
+		c.SetCloseHandler(func(code int, text string) error {
+			conn = nil // 将全局的 conn 设为 nil
+			return nil
+		})
+		conn = c
+	} else {
+		c = conn
+	}
+
+	//defer func(c *websocket.Conn) {
+	//	err := c.Close()
+	//	if err != nil {
+	//		log.Println(err)
+	//	}
+	//}(c)
+	// TODO: 现在是一直不关闭，以后想办法在程序退出时关闭
+	// 在这种情况下，你可以考虑使用Go的 os/signal 包来监听操作系统发出的终止信号。当程序收到这样的信号时，
+	// 比如 SIGINT（即 Ctrl+C）或 SIGTERM，你可以优雅地关闭你的 WebSocket 连接。
 
 	if err := c.WriteMessage(websocket.TextMessage, []byte(ip)); err != nil {
-		return nil, fmt.Errorf("write message: %w", err)
+		return nil, "", fmt.Errorf("write message: %w", err)
 	}
 
 	_, message, err := c.ReadMessage()
 	if err != nil {
-		return nil, fmt.Errorf("read message: %w", err)
+		return nil, "", fmt.Errorf("read message: %w", err)
 	}
 
 	var data IPGeoData
 	if err := json.Unmarshal(message, &data); err != nil {
-		return nil, fmt.Errorf("json unmarshal: %w", err)
+		return nil, "", fmt.Errorf("json unmarshal: %w", err)
 	}
 
-	return &data, nil
+	return &data, jwtToken, nil
 }
 
 type Result struct {
@@ -119,17 +188,26 @@ func isPrivateOrReserved(ip net.IP) bool {
 	return false
 }
 
-func Find(query string, params ...string) (result fmt.Stringer, err error) {
+func Find(query string, token string) (result fmt.Stringer, retToken string, err error) {
 	if net.ParseIP(query) == nil {
-		return Result{""}, nil // 如果 query 不是一个有效的 IP 地址，返回空字符串
+		return Result{""}, token, nil // 如果 query 不是一个有效的 IP 地址，返回空字符串
 	}
 	if isPrivateOrReserved(net.ParseIP(query)) {
-		return Result{""}, nil // 如果 query 是一个私有或保留地址，返回空字符串
+		return Result{""}, token, nil // 如果 query 是一个私有或保留地址，返回空字符串
 	}
-	res, err := FetchIPInfo(query)
-	if err != nil {
-		return nil, err
+	i := 0
+	var res *IPGeoData
+	for i = 0; i < 3; i++ {
+		res, token, err = FetchIPInfo(query, token)
+		if err != nil {
+			continue
+		}
+		break
 	}
+	if i == 3 {
+		return nil, "", err
+	}
+
 	result = Result{
 		Data: strings.Join(func() []string {
 			dataSlice := make([]string, 0, 7)
@@ -154,5 +232,5 @@ func Find(query string, params ...string) (result fmt.Stringer, err error) {
 		}(), ";"),
 	}
 
-	return result, nil
+	return result, token, nil
 }
