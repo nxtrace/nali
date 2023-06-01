@@ -50,28 +50,32 @@ func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
 	}
 	//host, port, fastIp = "103.120.18.35", "api.leo.moe", "443"
 	envToken := util.EnvToken
-	jwtToken := "Bearer " + token
-	ua := []string{"Privileged Client"}
+	jwtToken := token
+	ua := []string{pow.UserAgent}
+	if envToken != "" {
+		ua = []string{"Privileged Client"}
+	}
+
 	if token == "" {
+		// 如果没有传入 token，尝试从环境变量中获取
 		jwtToken = envToken
 		err := error(nil)
 		if envToken == "" {
+			// 如果环境变量中没有 token，尝试从 pow 获取
 			jwtToken, err = pow.GetToken(fastIp, host, port)
 			if err != nil {
 				log.Println(err)
 				os.Exit(1)
 			}
-			ua = []string{pow.UserAgent}
+
 		}
-		jwtToken = "Bearer " + jwtToken
 	}
 
 	requestHeader := http.Header{
 		"Host":          []string{host},
 		"User-Agent":    ua,
-		"Authorization": []string{jwtToken},
+		"Authorization": []string{"Bearer " + jwtToken},
 	}
-	jwtToken = strings.TrimPrefix(jwtToken, "Bearer ")
 	dialer := websocket.DefaultDialer
 	dialer.TLSClientConfig = &tls.Config{
 		ServerName: host,
@@ -90,6 +94,7 @@ func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
 			conn = nil // 将全局的 conn 设为 nil
 			return nil
 		})
+		// ws留给下次复用
 		conn = c
 	} else {
 		c = conn
