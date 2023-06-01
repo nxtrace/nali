@@ -16,8 +16,6 @@ import (
 	"github.com/zu1k/nali/pkg/zxipv6wry"
 )
 
-var tokenCache = make(map[string]string)
-
 func GetDB(typ dbif.QueryType) (db dbif.DB) {
 	if db, found := dbTypeCache[typ]; found {
 		return db
@@ -84,16 +82,7 @@ func Find(typ dbif.QueryType, query string) string {
 	if nali == "1" {
 		result, err = GetDB(typ).Find(query)
 	} else {
-		token, ok := tokenCache["api.leo.moe"]
-		//fmt.Println("token:", token)
-		if !ok {
-			token = ""
-			//fmt.Println("token not found")
-		} else {
-			//fmt.Println("token found")
-		}
-		result, token, err = leomoeapi.Find(query, token)
-		tokenCache["api.leo.moe"] = token
+		result, err = leomoeapi.Find(query)
 	}
 	if err != nil {
 		return ""

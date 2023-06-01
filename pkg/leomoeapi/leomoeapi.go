@@ -36,9 +36,15 @@ type IPGeoData struct {
 	Source    string              `json:"source"`
 }
 
+var tokenCache = make(map[string]string)
 var conn *websocket.Conn
 
-func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
+func FetchIPInfo(ip string) (*IPGeoData, error) {
+	token, ok := tokenCache["api.leo.moe"]
+	if !ok {
+		token = ""
+	}
+
 	var host, port, fastIp string
 	host, port = util.GetHostAndPort()
 	// 如果 host 是一个 IP 使用默认域名
@@ -71,6 +77,7 @@ func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
 		}
 	}
 
+	tokenCache["api.leo.moe"] = jwtToken
 	requestHeader := http.Header{
 		"Host":          []string{host},
 		"User-Agent":    ua,
@@ -86,9 +93,10 @@ func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
 	var err error
 
 	if conn == nil {
+		//fmt.Println("new dialing")
 		c, _, err = websocket.DefaultDialer.Dial(u.String(), requestHeader)
 		if err != nil {
-			return nil, "", fmt.Errorf("websocket dial: %w", err)
+			return nil, fmt.Errorf("websocket dial: %w", err)
 		}
 		c.SetCloseHandler(func(code int, text string) error {
 			conn = nil // 将全局的 conn 设为 nil
@@ -111,20 +119,20 @@ func FetchIPInfo(ip string, token string) (*IPGeoData, string, error) {
 	// 比如 SIGINT（即 Ctrl+C）或 SIGTERM，你可以优雅地关闭你的 WebSocket 连接。
 
 	if err := c.WriteMessage(websocket.TextMessage, []byte(ip)); err != nil {
-		return nil, "", fmt.Errorf("write message: %w", err)
+		return nil, fmt.Errorf("write message: %w", err)
 	}
 
 	_, message, err := c.ReadMessage()
 	if err != nil {
-		return nil, "", fmt.Errorf("read message: %w", err)
+		return nil, fmt.Errorf("read message: %w", err)
 	}
 
 	var data IPGeoData
 	if err := json.Unmarshal(message, &data); err != nil {
-		return nil, "", fmt.Errorf("json unmarshal: %w", err)
+		return nil, fmt.Errorf("json unmarshal: %w", err)
 	}
 
-	return &data, jwtToken, nil
+	return &data, nil
 }
 
 type Result struct {
@@ -193,24 +201,24 @@ func isPrivateOrReserved(ip net.IP) bool {
 	return false
 }
 
-func Find(query string, token string) (result fmt.Stringer, retToken string, err error) {
+func Find(query string) (result fmt.Stringer, err error) {
 	if net.ParseIP(query) == nil {
-		return Result{""}, token, nil // 如果 query 不是一个有效的 IP 地址，返回空字符串
+		return Result{""}, nil // 如果 query 不是一个有效的 IP 地址，返回空字符串
 	}
 	if isPrivateOrReserved(net.ParseIP(query)) {
-		return Result{""}, token, nil // 如果 query 是一个私有或保留地址，返回空字符串
+		return Result{""}, nil // 如果 query 是一个私有或保留地址，返回空字符串
 	}
 	i := 0
 	var res *IPGeoData
 	for i = 0; i < 3; i++ {
-		res, token, err = FetchIPInfo(query, token)
+		res, err = FetchIPInfo(query)
 		if err != nil {
 			continue
 		}
 		break
 	}
 	if i == 3 {
-		return nil, "", err
+		return nil, err
 	}
 
 	result = Result{
@@ -237,5 +245,5 @@ func Find(query string, token string) (result fmt.Stringer, retToken string, err
 		}(), ";"),
 	}
 
-	return result, token, nil
+	return result, nil
 }
