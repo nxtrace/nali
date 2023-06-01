@@ -54,28 +54,12 @@ ntr 1.1.1.1 -T -c 10
 
 ## 安装
 
-### 从源码安装
-
-Nali 需要预先安装 Go >= 1.19. 安装后可以从源码安装软件:
-
-```sh
-$ go install github.com/zu1k/nali@latest
-```
-
 ### 下载预编译的可执行程序
 
 可以从Release页面下载预编译好的可执行程序: [Release](https://github.com/zu1k/nali/releases)
 
 你需要选择适合你系统和硬件架构的版本下载，解压后可直接运行
 
-### Arch 系 Linux
-
-我们在 Aur 中发布了 3 个相关的包:
-
-- `nali-go`: Release 版本，安装时编译
-- `nali-go-bin`: Release 版本，预编译的二进制文件
-- `nali-go-git`: 最新的 master 分支版本，安装时编译
-  
 ## 使用说明
 
 ### 查询一个IP的地理信息
