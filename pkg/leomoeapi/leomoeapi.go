@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/xgadget-lab/nexttrace/util"
+	"github.com/nxtrace/NTrace-core/util"
 	"github.com/zu1k/nali/pow"
 	"log"
 	"net"
