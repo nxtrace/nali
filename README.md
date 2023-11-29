@@ -1,5 +1,5 @@
 <h1 align="center">
-  <br>Nali x Nexttrace<br>
+  <br>Nali x NextTrace<br>
 </h1>
 
 #### [English](https://github.com/zu1k/nali/blob/master/README_en.md)
