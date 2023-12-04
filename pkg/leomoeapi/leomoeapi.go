@@ -49,7 +49,7 @@ func FetchIPInfo(ip string) (*IPGeoData, error) {
 	host, port = util.GetHostAndPort()
 	// 如果 host 是一个 IP 使用默认域名
 	if valid := net.ParseIP(host); valid != nil {
-		host = "api.leo.moe"
+		host = "origin-fallback.nxtrace.org"
 	} else {
 		// 默认配置完成，开始寻找最优 IP
 		fastIp = util.GetFastIP(host, port, false)

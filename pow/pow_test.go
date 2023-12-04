@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetToken(t *testing.T) {
-	token, err := GetToken("103.120.18.35", "api.leo.moe", "443")
+	token, err := GetToken("45.88.195.154", "origin-fallback.nxtrace.org", "443")
 	fmt.Println(token, err)
 	assert.NoError(t, err, "GetToken() returned an error")
 }
