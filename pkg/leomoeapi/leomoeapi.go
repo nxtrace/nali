@@ -52,7 +52,7 @@ func FetchIPInfo(ip string) (*IPGeoData, error) {
 		host = "origin-fallback.nxtrace.org"
 	} else {
 		// 默认配置完成，开始寻找最优 IP
-		fastIp = util.GetFastIP(host, port, false)
+		fastIp = util.GetFastIP("api.nxtrace.org", port, false)
 	}
 	//host, port, fastIp = "103.120.18.35", "api.leo.moe", "443"
 	envToken := util.EnvToken
