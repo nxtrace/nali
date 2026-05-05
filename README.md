@@ -2,6 +2,8 @@
   <br>Nali x NextTrace<br>
 </h1>
 
+## ⚠️ 本仓库已归档不再维护，所涉及功能已 merge 进 NTrace-core(NextTrace) 中，使用`--nali`参数调用。
+
 #### [English](https://github.com/zu1k/nali/blob/master/README_en.md)
 
 ## 相比原版nali的特别功能
